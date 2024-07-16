@@ -1,6 +1,8 @@
+/* eslint-disable prettier/prettier */
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
+
 const userSchema = new mongoose.Schema({
     name:{
         type: String,
@@ -17,7 +19,15 @@ const userSchema = new mongoose.Schema({
     password : {
         type:String,
         required:[true,'please provide a valid password'],
-        minlength:8
+        minlength:8,
+        select:false
+        /*In a Mongoose schema, setting select: false for a field means that the field won’t be 
+        loaded from the database when querying documents. However, it’s important to note that 
+        this doesn’t prevent the field from being present in the queried object; it simply excludes 
+        it from the data loaded from the database. If you want to filter out fields before sending 
+        them over HTTP, you can use a custom toObject() transformation1. Additionally, if you’re specifically
+         dealing with password fields, consider using User.find().select('-password') to exclude the password 
+         field when querying user documents2. 🤓*/
     },
     passwordConfirm : {
         type: String,
@@ -52,6 +62,11 @@ userSchema.pre('save', async function(next) {
     
     next();
 });
+userSchema.methods.verifyPassword = async function  (userPassword,databasePassword) {
+    //we cannot decrypt password back so to compare the password entered by user we will first encypt it and then compare it to the 
+    //password retreived from the database
+       return await bcrypt.compare(userPassword,databasePassword);
+  };
 const User = mongoose.model('User',userSchema);
 
 module.exports=User;
