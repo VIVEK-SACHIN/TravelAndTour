@@ -2,7 +2,8 @@ const Tour = require('./../models/tourModel');
 const APIFeatures = require('./../utils/apiFeatures');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
-const authcontroller = require('./../controllers/authController')
+// const authcontroller = require('./../controllers/authController');
+
 exports.aliasTopTours = (req, res, next) => {
   req.query.limit = '5';
   req.query.sort = '-ratingsAverage,price';
@@ -17,7 +18,6 @@ exports.getAllTours = catchAsync(async (req, res, next) => {
     .limitFields()
     .paginate();
   const tours = await features.query;
-
   // SEND RESPONSE
   res.status(200).json({
     status: 'success',

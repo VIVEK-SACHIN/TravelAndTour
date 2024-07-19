@@ -67,6 +67,17 @@ userSchema.methods.verifyPassword = async function  (userPassword,databasePasswo
     //password retreived from the database
        return await bcrypt.compare(userPassword,databasePassword);
   };
+  userSchema.methods.changedPasswordAfter =  function  (jwtTimestamp) {
+    //we cannot decrypt password back so to compare the password entered by user we will first encypt it and then compare it to the 
+    //password retreived from the database
+       if(this.changedPasswordAt){
+        
+        const changedTimeStamp = parseInt(this.changedPasswordAt.getTime()/1000,10);
+        return jwtTimestamp < changedTimeStamp;
+       }
+       console.log('wesrfwefsefsefs')
+       return false;
+  };
 const User = mongoose.model('User',userSchema);
 
 module.exports=User;

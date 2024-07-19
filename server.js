@@ -14,10 +14,11 @@ const DB = process.env.DATABASE.replace(
   '<password>',
   process.env.DATABASE_PASSWORD
 );
-console.log(DB)
+console.log(DB);
 
 mongoose
   .connect(DB, {
+    dbName: 'natours',
     useNewUrlParser: true,
     useCreateIndex: true,
     useFindAndModify: false

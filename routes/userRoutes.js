@@ -1,9 +1,10 @@
 const express = require('express');
 const userController = require('./../controllers/userController');
 const authcontroller = require('./../controllers/authController');
+
 const router = express.Router();
-// this is a special kind of end point as it does not fit the rest architecture 
-router.post('/signup',authcontroller.signup)
+// this is a special kind of end point as it does not fit the rest architecture
+router.post('/signup', authcontroller.signup);
 
 router
   .route('/')
