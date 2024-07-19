@@ -39,7 +39,7 @@ exports.login = async (req, res, next) => {
   //to select some feild with select property set as false use this .select('+password')
 
   if (!user && (await !user.verifyPassord(password, user.password))) {
-    return next(AppError('username Or password is incorrect', 401));
+    return next(new AppError('username Or password is incorrect', 401));
   }
 
   //send the authorized token
@@ -61,7 +61,7 @@ exports.protect = catchAsync(async (req, res, next) => {
     token = req.headers.authorization.split(' ')[1];
   }
   if (!token) {
-    next(AppError('you are not logged in ', 401));
+    return next(new AppError('you are not logged in ', 401));
   }
   //2)verification of token
 
