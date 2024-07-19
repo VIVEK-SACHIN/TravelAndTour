@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { promisify }= require('util');
+const { promisify } = require('util');
 const catchAsync = require('./../utils/catchAsync');
 const User = require('./../models/userModel');
 const AppError = require('../utils/appError');
@@ -51,29 +51,28 @@ exports.login = async (req, res, next) => {
   });
 };
 
-exports.protect= catchAsync(async (req,res,next)=>{
-  //1)Getting token and cheking of its there 
+exports.protect = catchAsync(async (req, res, next) => {
+  //1)Getting token and cheking of its there
   let token;
-  if(
+  if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
-  ){
-     token = req.headers.authorization.split(' ')[1];
+  ) {
+    token = req.headers.authorization.split(' ')[1];
   }
-  if(!token){
-    next(AppError('you are not logged in ',401))
-   }
+  if (!token) {
+    next(AppError('you are not logged in ', 401));
+  }
   //2)verification of token
 
-  //at third argument this jwt verify takes a callack function which will run in case 
-  //verification was successful but to go with async await style we would use promisify 
-   const decode =await promisify(jwt.verify(token,process.env.JWT_SECRET));
-   console.log(decode)
-
+  //at third argument this jwt verify takes a callack function which will run in case
+  //verification was successful but to go with async await style we would use promisify
+  const decode = await promisify(jwt.verify(token, process.env.JWT_SECRET));
+  console.log(decode);
 
   //3) check if user still exists
 
-  //4)check if user changed password after the token was issued 
+  //4)check if user changed password after the token was issued
 
   next();
 });
