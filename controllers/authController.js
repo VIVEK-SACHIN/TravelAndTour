@@ -67,6 +67,7 @@ exports.protect = catchAsync(async (req, res, next) => {
 
   //at third argument this jwt verify takes a callack function which will run in case
   //verification was successful but to go with async await style we would use promisify
+
   const decode = await promisify(jwt.verify(token, process.env.JWT_SECRET));
   console.log(decode);
 

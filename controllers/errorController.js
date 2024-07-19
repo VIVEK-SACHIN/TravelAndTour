@@ -4,7 +4,7 @@ const handleCastErrorDB = err => {
   const message = `Invalid ${err.path}: ${err.value}.`;
   return new AppError(message, 400);
 };
-
+const handleJwtError = err => new AppError('invalid token,please login again!',401)
 const handleDuplicateFieldsDB = err => {
   const value = err.errmsg.match(/(["'])(\\?.)*?\1/)[0];
   console.log(value);
@@ -30,6 +30,7 @@ const sendErrorDev = (err, res) => {
 
 const sendErrorProd = (err, res) => {
   // Operational, trusted error: send message to client
+  console.log(err.message);
   if (err.isOperational) {
     res.status(err.statusCode).json({
       status: err.status,
@@ -50,8 +51,7 @@ const sendErrorProd = (err, res) => {
 };
 
 module.exports = (err, req, res, next) => {
-  // console.log(err.stack);
-
+  
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
 
@@ -64,6 +64,7 @@ module.exports = (err, req, res, next) => {
     if (error.code === 11000) error = handleDuplicateFieldsDB(error);
     if (error.name === 'ValidationError')
       error = handleValidationErrorDB(error);
+    if (error.name === 'JsonWebTokenError')  error = handleJwtError(err);
 
     sendErrorProd(error, res);
   }
