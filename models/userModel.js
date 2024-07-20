@@ -16,6 +16,11 @@ const userSchema = new mongoose.Schema({
         validate:[validator.isEmail,'Please provide a valid email']
     },
     photo :String,
+    role  :{
+        type:String,
+        enum:['user','guide','lead-guide','admin'],
+        default: 'user'
+    },
     password : {
         type:String,
         required:[true,'please provide a valid password'],
@@ -41,7 +46,8 @@ const userSchema = new mongoose.Schema({
             return el === this.password;
         },
         message: 'Passwords are not the same!' 
-    }
+    },
+    changedPasswordAt: Date
    
 });
 //we should never ever save direct passwords in the database so we will use mongoose middleware 

@@ -14,7 +14,8 @@ exports.signup = catchAsync(async (req, res, next) => {
     user: req.body.user,
     email: req.body.email,
     password: req.body.password,
-    passwordConfirm: req.body.passwordConfirm
+    passwordConfirm: req.body.passwordConfirm,
+    role: req.body.role
   });
   const token = signtoken(newUser._id);
   res.status(201).json({
@@ -91,10 +92,20 @@ exports.protect = catchAsync(async (req, res, next) => {
       new AppError('After last login password was changed plz login again', 401)
     );
   }
-
+  req.user =user[0];
   next();
 });
 
+//we can not pass arguments directly to a middleware function so for this case we use wrapper function
+exports.restrictTo = (...roles) => {
+  // Rest parameters allow you to represent an indefinite number of arguments as an array. This is the modern and recommended approach over using arguments.
+   return (req,res,next) => {
+     if(!roles.includes(req.user.roles)){
+        return next(new AppError('You do not have permission to perform this action',403))
+     }
+     next();
+   }
+}
 // Sure, let's dive into how jwt.verify works in detail. The jwt.verify method from the jsonwebtoken library is used to verify the authenticity and integrity of a JSON Web Token (JWT). It does this by decoding the token, verifying its signature, and checking its validity against certain criteria (e.g., expiration time, audience).
 
 // JWT Structure
