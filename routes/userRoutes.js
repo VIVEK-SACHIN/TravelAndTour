@@ -6,6 +6,8 @@ const router = express.Router();
 // this is a special kind of end point as it does not fit the rest architecture
 router.post('/signup', authController.signup);
 router.post('/login', authController.login);
+router.post('/forgetPassword', authController.forgetPassword);
+router.post('/resetPassword', authController.resetPassword);
 
 router
   .route('/')

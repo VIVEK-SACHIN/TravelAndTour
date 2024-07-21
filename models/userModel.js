@@ -1,4 +1,5 @@
 /* eslint-disable prettier/prettier */
+const crypto = require('crypto')
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
@@ -47,7 +48,9 @@ const userSchema = new mongoose.Schema({
         },
         message: 'Passwords are not the same!' 
     },
-    changedPasswordAt: Date
+    changedPasswordAt: Date,
+    passwordResetToken :String,
+    passwordResetTokenexpiresires: Date
    
 });
 //we should never ever save direct passwords in the database so we will use mongoose middleware 
@@ -81,9 +84,22 @@ userSchema.methods.verifyPassword = async function  (userPassword,databasePasswo
         const changedTimeStamp = parseInt(this.changedPasswordAt.getTime()/1000,10);
         return jwtTimestamp < changedTimeStamp;
        }
-       console.log('wesrfwefsefsefs')
        return false;
   };
+userSchema.methods.createPasswordResetToken = function(){
+    //password reset token should basically be a random string but need not to be as cryptographically 
+    //strong as the password hash that we created before so built in crypto module can be used for that 
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    this,passwordResetToken = crypto 
+      .createHash('sha256')
+      .update(resetToken)
+      .digest('hex');
+    
+    this.passwordResetTokenexpires =  Date.now() + 10 * 60 * 1000;
+
+    return resetToken;
+    
+}  
 const User = mongoose.model('User',userSchema);
 
 module.exports=User;
