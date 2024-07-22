@@ -76,7 +76,6 @@ exports.protect = catchAsync(async (req, res, next) => {
   //const verifyAsync = promisify(jwt.verify);
   //const decoded = await verifyAsync(token, secretKey);
 
-  console.log('pehle');
   const decode = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
   console.log(decode);
 
@@ -162,13 +161,27 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
     passwordResetExpires: { $gt: Date.now() }
   });
 
+//2)IF token has not expired, and there is user, set the new password
+
   if (!user) {
     return next(new AppError('Token is invalid or has expired', 400));
   }
   user.password =req.body.password;
   user.passwordConfirm =req.body.passwordConfirm;
-  user.password =req.body.password;
-  user.password =req.body.password;
+  user.passwordResetToken = undefined;
+  user.passwordResetTokenexpires = undefined;
+  await user.save();
+
+//3)Update changedPasswordAt property for the user
+
+
+//4)Log the user in, send JWT
+const token = signtoken(user._id);
+
+res.status(200).json({
+  status: 'success',
+  token
+});
 
 });
 

@@ -53,6 +53,13 @@ const userSchema = new mongoose.Schema({
     passwordResetTokenexpiresires: Date
    
 });
+userSchema.pre('save',async function(next){
+  if(!this.isModified('password')||this.isNew){
+    return next();
+  }
+  this.changedPasswordAt =Date.now() -2000;
+  next();
+})
 //we should never ever save direct passwords in the database so we will use mongoose middleware 
 //to avoid it .
 userSchema.pre('save', async function(next) {
@@ -90,7 +97,7 @@ userSchema.methods.createPasswordResetToken = function(){
     //password reset token should basically be a random string but need not to be as cryptographically 
     //strong as the password hash that we created before so built in crypto module can be used for that 
     const resetToken = crypto.randomBytes(32).toString('hex');
-    this,passwordResetToken = crypto 
+    this.passwordResetToken = crypto 
       .createHash('sha256')
       .update(resetToken)
       .digest('hex');
