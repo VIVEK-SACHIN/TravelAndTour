@@ -1,9 +1,11 @@
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { promisify } = require('util');
 const catchAsync = require('./../utils/catchAsync');
 const User = require('./../models/userModel');
 const AppError = require('../utils/appError');
-const sendEmail =require('../utils/email');
+const sendEmail = require('../utils/email');
+
 const signtoken = id =>
   jwt.sign({ id: id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN
@@ -85,27 +87,29 @@ exports.protect = catchAsync(async (req, res, next) => {
       new AppError('User with the following credentials no longer exists ', 401)
     );
   }
- 
+
   //4)check if user changed password after the token was issued
   if (user[0].changedPasswordAfter(decode.iat)) {
     return next(
       new AppError('After last login password was changed plz login again', 401)
     );
   }
-  req.user =user[0];
+  req.user = user[0];
   next();
 });
 
 //we can not pass arguments directly to a middleware function so for this case we use wrapper function
 exports.restrictTo = (...roles) => {
   // Rest parameters allow you to represent an indefinite number of arguments as an array. This is the modern and recommended approach over using arguments.
-   return (req,res,next) => {
-     if(!roles.includes(req.user.roles)){
-        return next(new AppError('You do not have permission to perform this action',403))
-     }
-     next();
-   }
-}
+  return (req, res, next) => {
+    if (!roles.includes(req.user.roles)) {
+      return next(
+        new AppError('You do not have permission to perform this action', 403)
+      );
+    }
+    next();
+  };
+};
 exports.forgetPassword = catchAsync(async (req, res, next) => {
   // 1) Get user based on POSTed email
   const user = await User.findOne({ email: req.body.email });
@@ -146,7 +150,27 @@ exports.forgetPassword = catchAsync(async (req, res, next) => {
     );
   }
 });
-exports.resetPassword = (req,res,next) => {}
+exports.resetPassword = catchAsync(async (req, res, next) => {
+  //1) Get user based on the token
+  const hashedToken = crypto
+    .createHash('sha256')
+    .update(req.params.token)
+    .digest('hex');
+
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() }
+  });
+
+  if (!user) {
+    return next(new AppError('Token is invalid or has expired', 400));
+  }
+  user.password =req.body.password;
+  user.passwordConfirm =req.body.passwordConfirm;
+  user.password =req.body.password;
+  user.password =req.body.password;
+
+});
 
 // Sure, let's dive into how jwt.verify works in detail. The jwt.verify method from the jsonwebtoken library is used to verify the authenticity and integrity of a JSON Web Token (JWT). It does this by decoding the token, verifying its signature, and checking its validity against certain criteria (e.g., expiration time, audience).
 
