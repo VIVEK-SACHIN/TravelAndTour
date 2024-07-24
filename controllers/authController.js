@@ -10,6 +10,17 @@ const signtoken = id =>
   jwt.sign({ id: id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN
   });
+const createSendToken =(user,statuscode,res)=>{
+
+  const token = signtoken(user._id);
+  res.status(statuscode).json({
+    status: 'success',
+    token,
+    data: {
+       user
+    }
+  });
+}  
 exports.signup = catchAsync(async (req, res, next) => {
   const newUser = await User.create({
     name: req.body.name,
@@ -19,14 +30,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     passwordConfirm: req.body.passwordConfirm,
     role: req.body.role
   });
-  const token = signtoken(newUser._id);
-  res.status(201).json({
-    status: 'success',
-    token,
-    data: {
-      user: newUser
-    }
-  });
+  createSendToken(newUser,201,res);
 });
 
 exports.login = async (req, res, next) => {
@@ -39,20 +43,14 @@ exports.login = async (req, res, next) => {
   }
 
   //check if user exists and password is correct .
-  const user = User.findOne({ email }).select('+password');
+  const user = await User.findOne({ email }).select('+password');
   //to select some feild with select property set as false use this .select('+password')
 
   if (!user && (await !user.verifyPassord(password, user.password))) {
     return next(new AppError('username Or password is incorrect', 401));
   }
-
   //send the authorized token
-  const token = signtoken(user._id);
-
-  res.status(200).json({
-    status: 'success',
-    token
-  });
+  createSendToken(user,200,res);
 };
 
 exports.protect = catchAsync(async (req, res, next) => {
@@ -77,7 +75,6 @@ exports.protect = catchAsync(async (req, res, next) => {
   //const decoded = await verifyAsync(token, secretKey);
 
   const decode = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
-  console.log(decode);
 
   //3) check if user still exists
   const user = await User.find({ _id: decode.id });
@@ -161,7 +158,6 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
     passwordResetToken: hashedToken,
     // passwordResetExpires: { $gt: Date.now() }
   });
-  console.log(user);
 //2)IF token has not expired, and there is user, set the new password
 
   if (!user) {
@@ -178,15 +174,27 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 
 
 //4)Log the user in, send JWT
-const token = signtoken(user._id);
+createSendToken(user,200,res);
 
-res.status(200).json({
-  status: 'success',
-  token
-});
 
 });
+exports.updatePassword =catchAsync(async (req,res,next)=>{
+   // 1) Get user from collection
+  const  user =await User.find().select('+password')
+  // 2) Check if POSTed current password is correct
+  if(! user.verifyPassord(req.body.password,user.password)){
+    return next(new AppError('password galat hai',401));
+  }
+    // 3) If so, update password
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+  await user.save();
+  // User.findByIdAndUpdate will NOT work as intended!
 
+  // 4) Log user in, send JWT
+  createSendToken(user, 200, res);
+
+});
 
 // Sure, let's dive into how jwt.verify works in detail. The jwt.verify method from the jsonwebtoken library is used to verify the authenticity and integrity of a JSON Web Token (JWT). It does this by decoding the token, verifying its signature, and checking its validity against certain criteria (e.g., expiration time, audience).
 
