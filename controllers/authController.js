@@ -151,6 +151,7 @@ exports.forgetPassword = catchAsync(async (req, res, next) => {
 });
 exports.resetPassword = catchAsync(async (req, res, next) => {
   //1) Get user based on the token
+  
   const hashedToken = crypto
     .createHash('sha256')
     .update(req.params.token)
@@ -158,16 +159,17 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 
   const user = await User.findOne({
     passwordResetToken: hashedToken,
-    passwordResetExpires: { $gt: Date.now() }
+    // passwordResetExpires: { $gt: Date.now() }
   });
-
+  console.log(user);
 //2)IF token has not expired, and there is user, set the new password
 
   if (!user) {
     return next(new AppError('Token is invalid or has expired', 400));
   }
-  user.password =req.body.password;
+  user.password =req.body.newPassword;
   user.passwordConfirm =req.body.passwordConfirm;
+
   user.passwordResetToken = undefined;
   user.passwordResetTokenexpires = undefined;
   await user.save();
@@ -184,6 +186,7 @@ res.status(200).json({
 });
 
 });
+
 
 // Sure, let's dive into how jwt.verify works in detail. The jwt.verify method from the jsonwebtoken library is used to verify the authenticity and integrity of a JSON Web Token (JWT). It does this by decoding the token, verifying its signature, and checking its validity against certain criteria (e.g., expiration time, audience).
 
