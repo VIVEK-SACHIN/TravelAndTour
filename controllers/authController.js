@@ -11,8 +11,15 @@ const signtoken = id =>
     expiresIn: process.env.JWT_EXPIRES_IN
   });
 const createSendToken =(user,statuscode,res)=>{
-
   const token = signtoken(user._id);
+  const cookieOptions = {
+    expires:new Date(Date.now()+process.env.JWT_COOKIE_EXPIRES_IN*24*60*60*1000),
+    httpOnly:true,
+  };
+  if(process.env.NODE_ENV=='production'){
+    cookieOptions.secure=true;
+  }
+  res.cookie('jwt',token,cookieOptions);
   res.status(statuscode).json({
     status: 'success',
     token,
@@ -22,6 +29,7 @@ const createSendToken =(user,statuscode,res)=>{
   });
 }  
 exports.signup = catchAsync(async (req, res, next) => {
+  console.log("hii");
   const newUser = await User.create({
     name: req.body.name,
     user: req.body.user,
@@ -30,6 +38,8 @@ exports.signup = catchAsync(async (req, res, next) => {
     passwordConfirm: req.body.passwordConfirm,
     role: req.body.role
   });
+ //to make it more secure with select false it will not come in find queries but it will come it user creation
+  newUser.password=undefined;
   createSendToken(newUser,201,res);
 });
 
@@ -46,10 +56,11 @@ exports.login = async (req, res, next) => {
   const user = await User.findOne({ email }).select('+password');
   //to select some feild with select property set as false use this .select('+password')
 
-  if (!user && (await !user.verifyPassord(password, user.password))) {
+  if (!user ||  ( !await user.verifyPassword(password, user.password))) {
     return next(new AppError('username Or password is incorrect', 401));
   }
   //send the authorized token
+  user.password=undefined;
   createSendToken(user,200,res);
 };
 
@@ -91,6 +102,7 @@ exports.protect = catchAsync(async (req, res, next) => {
     );
   }
   req.user = user[0];
+  console.log('protect called');
   next();
 });
 

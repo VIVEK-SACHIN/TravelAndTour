@@ -50,7 +50,12 @@ const userSchema = new mongoose.Schema({
     },
     changedPasswordAt: Date,
     passwordResetToken :String,
-    passwordResetTokenexpiresires: Date
+    passwordResetTokenexpiresires: Date,
+    active:{
+        type:Boolean,
+        default:true,
+        select:false
+    }
    
 });
 userSchema.pre('save',async function(next){
@@ -60,6 +65,11 @@ userSchema.pre('save',async function(next){
   this.changedPasswordAt =Date.now() -2000;
   next();
 })
+userSchema.pre(/^find/, function(next){
+   //using requgular expression to make this function work for all find type querries
+   this.find({active:{$ne:false}});
+    next();
+  })
 //we should never ever save direct passwords in the database so we will use mongoose middleware 
 //to avoid it .
 userSchema.pre('save', async function(next) {
