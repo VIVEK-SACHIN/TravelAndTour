@@ -4,6 +4,7 @@ const rateLimit = require('express-rate-limit'); //for putting a rate limit
 const helmet = require('helmet'); //use for additional security header and made of other small 14 headers
 const mongoSanitize = require('express-mongo-sanitize');
 const xssClean = require('xss-clean');
+const hpp = require('hpp');
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
@@ -32,6 +33,19 @@ app.use(express.json({ limit: '10kb' }));
 app.use(mongoSanitize());
 //data sanitization against xss attacks -this will then clean all the malicious html input(by convertiong all the html symbols ) 
 app.use(xssClean());
+//use hpp to avoid polluting of routes it will create an array for feilds with multiple values to avoid we can use this middle where which will force it to use the latest value in case of middle where where you want to make array you can use options and pass whitelist 
+app.use(
+  hpp({
+    whitelist: [
+      'duration',
+      'ratingsQuantity',
+      'ratingsAverage',
+      'maxGroupSize',
+      'difficulty',
+      'price'
+    ]
+  })
+);
 //serve static fikle on the server
 app.use(express.static(`${__dirname}/public`));
 //to set request time on the req
