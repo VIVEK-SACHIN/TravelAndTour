@@ -50,27 +50,51 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
     data: null
   });
 });
-exports.getUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not yet defined!'
+exports.getUser = catchAsync(async (req, res) => {
+  const user = await User.findById(req.params.id);
+  console.log(req.params.id, req.user);
+  res.status(200).json({
+    status: 'success',
+    user,
+    requestedBy: req.user
   });
-};
-exports.createUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not yet defined!'
+});
+exports.createUser = catchAsync(async (req, res) => {
+  const newUser = await User.create({
+    name: req.body.name,
+    user: req.body.user,
+    email: req.body.email,
+    password: req.body.password,
+    passwordConfirm: req.body.passwordConfirm,
+    role: req.body.role
   });
-};
-exports.updateUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not yet defined!'
+  //to make it more secure with select false it will not come in find queries but it will come it user creation
+  newUser.password = undefined;
+  res.status(200).json({
+    status: 'sucess',
+    user: newUser
   });
-};
-exports.deleteUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not yet defined!'
+});
+exports.updateUser = catchAsync(async (req, res, next) => {
+  if (req.body.password && !req.body.confirmPassword) {
+    return next(new AppError('Please enter & confirm Password', 400));
+  }
+  const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true
   });
-};
+  res.status(200).json({
+    status: 'success',
+    data: {
+      user: updatedUser
+    }
+  });
+});
+exports.deleteUser = catchAsync(async (req, res, next) => {
+  const user = await User.findByIdAndUpdate(req.params.id, { active: false });
+  if (!user) return next(new AppError('no such user exists', 404));
+  res.status(204).json({
+    sucess: 'status',
+    user
+  });
+});

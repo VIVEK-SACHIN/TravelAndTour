@@ -31,9 +31,9 @@ app.use(express.json({ limit: '10kb' }));
 //DATA sanitization against nosql querry injection
 //for example in the body someone instead of username or email pass {"$gt":""} then also it will match with all documents and if attacker somehow manges to guess or randomly fill password that matches any of the stored documents password then he will get the acess
 app.use(mongoSanitize());
-//data sanitization against xss attacks -this will then clean all the malicious html input(by convertiong all the html symbols ) 
+//data sanitization against xss attacks -this will then clean all the malicious html input(by convertiong all the html symbols )
 app.use(xssClean());
-//use hpp to avoid polluting of routes it will create an array for feilds with multiple values to avoid we can use this middle where which will force it to use the latest value in case of middle where where you want to make array you can use options and pass whitelist 
+//use hpp to avoid polluting of routes it will create an array for feilds with multiple values to avoid we can use this middle where which will force it to use the latest value in case of middle where where you want to make array you can use options and pass whitelist
 app.use(
   hpp({
     whitelist: [
