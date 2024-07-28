@@ -114,13 +114,19 @@ const tourSchema = new mongoose.Schema(
     guides: [{ type: mongoose.Schema.ObjectId, ref: 'User' }]
   },
   {
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true }
+    toJSON: { virtuals: true }, //toJSON: This option specifies how the schema should be converted to JSON when using JSON.stringify() or when sending data in a response (e.g., in an Express application). Setting { virtuals: true } tells Mongoose to include virtuals in the JSON output.
+    toObject: { virtuals: true } //toObject: This option specifies how the schema should be converted to a plain JavaScript object when using methods like .toObject() on a Mongoose document. Similarly, setting { virtuals: true } ensures that virtuals are included in the plain object output.
   }
 );
 
 tourSchema.virtual('durationWeeks').get(function() {
   return this.duration / 7;
+});
+// Virtual populate
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'tour',
+  localField: '_id'
 });
 
 // DOCUMENT MIDDLEWARE: runs before .save() and .create()
