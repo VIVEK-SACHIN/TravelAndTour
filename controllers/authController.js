@@ -31,7 +31,6 @@ const createSendToken = (user, statuscode, res) => {
   });
 };
 exports.signup = catchAsync(async (req, res, next) => {
-  console.log('hii');
   const newUser = await User.create({
     name: req.body.name,
     user: req.body.user,
@@ -111,7 +110,8 @@ exports.protect = catchAsync(async (req, res, next) => {
 exports.restrictTo = (...roles) => {
   // Rest parameters allow you to represent an indefinite number of arguments as an array. This is the modern and recommended approach over using arguments.
   return (req, res, next) => {
-    if (!roles.includes(req.user.roles)) {
+    if (!roles.includes(req.user.role)) {
+      console.log(roles);
       return next(
         new AppError('You do not have permission to perform this action', 403)
       );
@@ -169,10 +169,9 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 
   const user = await User.findOne({
     passwordResetToken: hashedToken,
-    passwordResetExpires: { $gt: Date.now() }
+    passwordResetTokenexpires: { $gt: Date.now() }
   });
   //2)IF token has not expired, and there is user, set the new password
-
   if (!user) {
     return next(new AppError('Token is invalid or has expired', 400));
   }
@@ -190,9 +189,10 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 });
 exports.updatePassword = catchAsync(async (req, res, next) => {
   // 1) Get user from collection
-  const user = await User.find().select('+password');
+  const user = await await User.findById(req.user.id).select('+password');
+
   // 2) Check if POSTed current password is correct
-  if (!user.verifyPassord(req.body.password, user.password)) {
+  if (!(await user.verifyPassword(req.body.passwordCurrent, user.password))) {
     return next(new AppError('password galat hai', 401));
   }
   // 3) If so, update password

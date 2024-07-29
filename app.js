@@ -34,8 +34,19 @@ app.use(express.json({ limit: '10kb' }));
 app.use(mongoSanitize());
 //data sanitization against xss attacks -this will then clean all the malicious html input(by convertiong all the html symbols )
 app.use(xssClean());
-//prevent parameter pollution
-app.use(hpp());
+//use hpp to avoid polluting of routes it will create an array for feilds with multiple values to avoid we can use this middle where which will force it to use the latest value in case of middle where where you want to make array you can use options and pass whitelist
+app.use(
+  hpp({
+    whitelist: [
+      'duration',
+      'ratingsQuantity',
+      'ratingsAverage',
+      'maxGroupSize',
+      'difficulty',
+      'price'
+    ]
+  })
+);
 //serve static fikle on the server
 app.use(express.static(`${__dirname}/public`));
 //to set request time on the req
@@ -60,3 +71,4 @@ module.exports = app;
 //a)if we are passing two parameters of the same name it will give error as in our code we are
 //expecting it to be a string and it will be but if we pass multiple values then it will convert it to an array
 // we will use hpp(http parameter pollution package to remove duplicate feilds)-only use the last one
+//data sanitization basically means to clean up all the data that comes into the application from malicious code i.e code that is trying to attack our application
