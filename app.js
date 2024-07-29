@@ -3,6 +3,7 @@ const morgan = require('morgan');
 const rateLimit = require('express-rate-limit'); //for putting a rate limit
 const helmet = require('helmet'); //use for additional security header and made of other small 14 headers
 const mongoSanitize = require('express-mongo-sanitize');
+const hpp = require('hpp');
 const xssClean = require('xss-clean');
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
@@ -27,11 +28,14 @@ app.use('/api', limiter);
 //parse json body to req.body
 app.use(express.json({ limit: '10kb' }));
 
+//data sanitization basically means to clean up all the data that comes into the application from malicious code i.e code that is trying to attack our application
 //DATA sanitization against nosql querry injection
 //for example in the body someone instead of username or email pass {"$gt":""} then also it will match with all documents and if attacker somehow manges to guess or randomly fill password that matches any of the stored documents password then he will get the acess
 app.use(mongoSanitize());
-//data sanitization against xss attacks -this will then clean all the malicious html input(by convertiong all the html symbols ) 
+//data sanitization against xss attacks -this will then clean all the malicious html input(by convertiong all the html symbols )
 app.use(xssClean());
+//prevent parameter pollution
+app.use(hpp());
 //serve static fikle on the server
 app.use(express.static(`${__dirname}/public`));
 //to set request time on the req
@@ -52,4 +56,7 @@ app.use(globalErrorHandler);
 
 module.exports = app;
 
-//data sanitization basically means to clean up all the data that comes into the application from malicious code i.e code that is trying to attack our application
+//parameter pollution
+//a)if we are passing two parameters of the same name it will give error as in our code we are
+//expecting it to be a string and it will be but if we pass multiple values then it will convert it to an array
+// we will use hpp(http parameter pollution package to remove duplicate feilds)-only use the last one
