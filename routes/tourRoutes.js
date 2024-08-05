@@ -1,11 +1,12 @@
 const express = require('express');
 const tourController = require('./../controllers/tourController');
 const authcontroller = require('./../controllers/authController');
+const reviewRouter = require('./../routes/reviewrouter');
 
 const router = express.Router();
 
 // router.param('id', tourController.checkID);
-
+router.use('/:tourId/review', reviewRouter);
 router
   .route('/top-5-cheap')
   .get(tourController.aliasTopTours, tourController.getAllTours);
@@ -27,5 +28,12 @@ router
     authcontroller.restrictTo('admin'),
     tourController.deleteTour
   );
+// router
+//   .route('/:tourId/review')
+//   .post(
+//     authcontroller.protect,
+//     authcontroller.restrictTo('user'),
+//     reviewController.createReview
+//   ); could be confusing and repeative code +
 
 module.exports = router;
