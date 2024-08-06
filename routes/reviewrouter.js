@@ -14,5 +14,6 @@ router
 router
   .route('/:id')
   .patch(reviewController.setUserIdAndTourId, reviewController.updateReview)
-  .delete(reviewController.deleteReview);
+  .delete(reviewController.deleteReview)
+  .get(reviewController.getReview);
 module.exports = router;

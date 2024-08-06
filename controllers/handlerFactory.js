@@ -1,6 +1,7 @@
 const { model } = require('mongoose');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const APIFeatures = require('../utils/apiFeatures');
 
 exports.deleteOne = Model =>
   catchAsync(async (req, res, next) => {
@@ -59,6 +60,26 @@ exports.getOne = (Model, populateOptions) =>
       status: 'success',
       data: {
         doc
+      }
+    });
+  });
+exports.getAll = Model =>
+  catchAsync(async (req, res, next) => {
+    //to allow for nested GET reviews on tour (hacks)
+    const filterObj = {};
+    if (req.params.tourId) filterObj.tour = req.params.tourId;
+    const features = new APIFeatures(Model.find(filterObj), req.query)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
+    const docs = await features.query;
+    // SEND RESPONSE
+    res.status(200).json({
+      status: 'success',
+      results: docs.length,
+      data: {
+        docs
       }
     });
   });
