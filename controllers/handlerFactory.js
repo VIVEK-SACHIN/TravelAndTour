@@ -1,4 +1,4 @@
-const { model } = require('mongoose');
+// const { model } = require('mongoose');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const APIFeatures = require('../utils/apiFeatures');
@@ -21,7 +21,7 @@ exports.updateOne = Model =>
       new: true,
       runValidators: true
     });
-    console.log(model);
+    // console.log(model);
     if (!doc) {
       return next(new AppError('No document found with that ID', 404));
     }

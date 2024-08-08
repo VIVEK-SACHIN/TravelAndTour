@@ -53,7 +53,8 @@ exports.createUser = catchAsync(async (req, res) => {
   });
 });
 // do not change password using this
-exports.updatedUser = factory.updateOne(User);
+exports.updateUser = factory.updateOne(User);
+
 // exports.updateUser = catchAsync(async (req, res, next) => {
 //   if (req.body.password && !req.body.confirmPassword) {
 //     return next(new AppError('Please enter & confirm Password', 400));
