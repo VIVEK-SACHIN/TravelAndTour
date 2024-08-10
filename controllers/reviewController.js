@@ -5,7 +5,7 @@ const factory = require('./handlerFactory');
 exports.setUserIdAndTourId = (req, res, next) => {
   if (!req.body.user) req.body.user = req.user._id;
   if (!req.body.tour) req.body.tour = req.params.tourId;
-  console.log(req.body);
+  // console.log("kjnhljkn,n",req.body);
   next();
 };
 exports.deleteReview = factory.deleteOne(Review);

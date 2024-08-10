@@ -118,6 +118,9 @@ const tourSchema = new mongoose.Schema(
     toObject: { virtuals: true } //toObject: This option specifies how the schema should be converted to a plain JavaScript object when using methods like .toObject() on a Mongoose document. Similarly, setting { virtuals: true } ensures that virtuals are included in the plain object output.
   }
 );
+tourSchema.index({ price: 1, ratingsAverage: -1 });
+tourSchema.index({ slug: 1 });
+tourSchema.index({ startLocation: '2dsphere' });
 
 tourSchema.virtual('durationWeeks').get(function() {
   return this.duration / 7;
