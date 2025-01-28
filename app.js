@@ -13,7 +13,14 @@ const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewrouter');
 
 const app = express();
+//When you set the view engine to pug using  
 app.set('view engine', 'pug');
+//Express automatically loads the installed Pug module internally. This eliminates the need to explicitly require or import it in your code.
+//for standalone use we can even require it 
+// const pug = require('pug');
+// const html = pug.renderFile('path/to/template.pug', { key: 'value' });
+// console.log(html);
+
 app.set('views', path.join(__dirname, 'views'));
 // 1)GLOBAL MIDDLEWARES
 //SET security http headers
