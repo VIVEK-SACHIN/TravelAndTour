@@ -44,12 +44,12 @@ exports.signup = catchAsync(async (req, res, next) => {
   createSendToken(newUser, 201, res);
 });
 
-exports.login = async (req, res, next) => {
+exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
   // loging a user is a three step process
 
   //checking if user exist and password is correct
-  if (!email && !password) {
+  if (!email || !password) {
     return next(new AppError('please provide email and password', 400));
   }
 
@@ -63,6 +63,14 @@ exports.login = async (req, res, next) => {
   //send the authorized token
   user.password = undefined;
   createSendToken(user, 200, res);
+});
+
+exports.logout = (req, res) => {
+  res.cookie('jwt', 'loggedout', {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true
+  });
+  res.status(200).json({ status: 'success' });
 };
 
 exports.protect = catchAsync(async (req, res, next) => {
@@ -73,9 +81,14 @@ exports.protect = catchAsync(async (req, res, next) => {
     req.headers.authorization.startsWith('Bearer')
   ) {
     token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
   }
+
   if (!token) {
-    return next(new AppError('you are not logged in ', 401));
+    return next(
+      new AppError('You are not logged in! Please log in to get access.', 401)
+    );
   }
   //2)verification of token
 
@@ -89,22 +102,59 @@ exports.protect = catchAsync(async (req, res, next) => {
   const decode = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
 
   //3) check if user still exists
-  const user = await User.find({ _id: decode.id });
-  if (!user.length > 0) {
+  const currentUser = await User.findById(decode.id);
+  if (!currentUser) {
     return next(
-      new AppError('User with the following credentials no longer exists ', 401)
+      new AppError(
+        'The user belonging to this token does no longer exist.',
+        401
+      )
     );
   }
 
-  //4)check if user changed password after the token was issued
-  if (user[0].changedPasswordAfter(decode.iat)) {
+  // 4) Check if user changed password after the token was issued
+  if (currentUser.changedPasswordAfter(decode.iat)) {
     return next(
-      new AppError('After last login password was changed plz login again', 401)
+      new AppError('User recently changed password! Please log in again.', 401)
     );
   }
-  req.user = user[0];
+
+  // GRANT ACCESS TO PROTECTED ROUTE
+  req.user = currentUser;
+  res.locals.user = currentUser;
   next();
 });
+
+// Only for rendered pages, no errors!
+exports.isLoggedIn = async (req, res, next) => {
+  if (req.cookies.jwt) {
+    try {
+      // 1) verify token
+      const decoded = await promisify(jwt.verify)(
+        req.cookies.jwt,
+        process.env.JWT_SECRET
+      );
+
+      // 2) Check if user still exists
+      const currentUser = await User.findById(decoded.id);
+      if (!currentUser) {
+        return next();
+      }
+
+      // 3) Check if user changed password after the token was issued
+      if (currentUser.changedPasswordAfter(decoded.iat)) {
+        return next();
+      }
+
+      // THERE IS A LOGGED IN USER
+      res.locals.user = currentUser;
+      return next();
+    } catch (err) {
+      return next();
+    }
+  }
+  next();
+};
 
 //we can not pass arguments directly to a middleware function so for this case we use wrapper function
 exports.restrictTo = (...roles) => {

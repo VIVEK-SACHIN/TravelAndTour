@@ -5,6 +5,7 @@ const rateLimit = require('express-rate-limit'); //for putting a rate limit
 const helmet = require('helmet'); //use for additional security header and made of other small 14 headers
 const mongoSanitize = require('express-mongo-sanitize');
 const hpp = require('hpp');
+const cookieParser = require('cookie-parser');
 const xssClean = require('xss-clean');
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
@@ -14,10 +15,10 @@ const reviewRouter = require('./routes/reviewrouter');
 const viewRouter = require('./routes/viewRoutes');
 
 const app = express();
-//When you set the view engine to pug using  
+//When you set the view engine to pug using
 app.set('view engine', 'pug');
 //Express automatically loads the installed Pug module internally. This eliminates the need to explicitly require or import it in your code.
-//for standalone use we can even require it 
+//for standalone use we can even require it
 // const pug = require('pug');
 // const html = pug.renderFile('path/to/template.pug', { key: 'value' });
 // console.log(html);
@@ -25,7 +26,7 @@ app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
 // 1)GLOBAL MIDDLEWARES
 //SET security http headers
-app.use(helmet()); //use as early in the middleware stack as possible
+app.use(helmet({ contentSecurityPolicy: false })); //use as early in the middleware stack as possible
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
@@ -38,6 +39,9 @@ const limiter = rateLimit({
 app.use('/api', limiter);
 //parse json body to req.body
 app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+
+app.use(cookieParser());
 
 //data sanitization basically means to clean up all the data that comes into the application from malicious code i.e code that is trying to attack our application
 //DATA sanitization against nosql querry injection
