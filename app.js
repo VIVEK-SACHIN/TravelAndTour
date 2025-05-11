@@ -5,6 +5,7 @@ const rateLimit = require('express-rate-limit'); //for putting a rate limit
 const helmet = require('helmet'); //use for additional security header and made of other small 14 headers
 const mongoSanitize = require('express-mongo-sanitize');
 const hpp = require('hpp');
+const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const xssClean = require('xss-clean');
 const AppError = require('./utils/appError');
@@ -23,6 +24,12 @@ app.set('view engine', 'pug');
 // const html = pug.renderFile('path/to/template.pug', { key: 'value' });
 // console.log(html);
 
+app.use(
+  cors({
+    origin: 'http://localhost:3000',
+    credentials: true
+  })
+);
 app.set('views', path.join(__dirname, 'views'));
 // 1)GLOBAL MIDDLEWARES
 //SET security http headers
