@@ -16,6 +16,11 @@ const reviewRouter = require('./routes/reviewrouter');
 const viewRouter = require('./routes/viewRoutes');
 
 const app = express();
+
+// Suppress Chrome DevTools probing error
+app.get('/.well-known/appspecific/com.chrome.devtools.json', (req, res) => {
+  res.status(204).send(); // No Content
+});
 //When you set the view engine to pug using
 app.set('view engine', 'pug');
 //Express automatically loads the installed Pug module internally. This eliminates the need to explicitly require or import it in your code.
