@@ -3,6 +3,7 @@
 import { displayMap } from './mapbox';
 import { login, logout } from './login';
 import { updateSettings } from './updateSettings';
+import { signup } from './signup';
 
 // DOM ELEMENTS
 const mapBox = document.getElementById('map');
@@ -10,7 +11,7 @@ const loginForm = document.querySelector('.form--login');
 const logOutBtn = document.querySelector('.nav__el--logout');
 const userDataForm = document.querySelector('.form-user-data');
 const userPasswordForm = document.querySelector('.form-user-password');
-
+const signupForm = document.querySelector('.form--signup');
 // DELEGATION
 if (mapBox) {
   const locations = JSON.parse(mapBox.dataset.locations);
@@ -57,3 +58,16 @@ if (userPasswordForm)
     document.getElementById('password').value = '';
     document.getElementById('password-confirm').value = '';
   });
+
+  if (signupForm)
+    signupForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const form = new FormData();
+      form.append('name', document.getElementById('signup-name').value);
+      form.append('email', document.getElementById('signup-email').value);
+      form.append('password', document.getElementById('signup-password').value);
+      form.append('passwordConfirm', document.getElementById('signup-passwordConfirm').value);
+      form.append('role', document.getElementById('signup-role').value);
+  
+      await signup(form);
+    });
